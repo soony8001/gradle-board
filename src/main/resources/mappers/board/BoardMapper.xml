@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="me.jsk.app.board.repository.BoardMapper">
+  <resultMap id="boardResult" type="me.jsk.app.board.domain.BoardVO">
+    <result column="DOC_NO"   property="docNo"    jdbcType="INTEGER"/>
+    <result column="TITLE"    property="title"    jdbcType="VARCHAR" />
+    <result column="CONTENT"  property="content"  jdbcType="VARCHAR" />
+    <result column="WRITER"   property="writer"   jdbcType="VARCHAR" />
+    <result column="REG_DTTM" property="regDttm"  jdbcType="VARCHAR"/>
+    <result column="VIEW"     property="view"     jdbcType="INTEGER"/>
+    <result column="REPLY"    property="reply"    jdbcType="INTEGER"/>
+  </resultMap>
+  <resultMap id="fileResult" type="me.jsk.app.board.domain.FileVO">
+    <result column="FILE_NO"   property="fileNo"    jdbcType="VARCHAR"/>
+    <result column="FILE_PATH"    property="filePath"    jdbcType="VARCHAR" />
+    <result column="REAL_FILE_NM"  property="realFileNm"  jdbcType="VARCHAR" />
+    <result column="SERVER_FILE_NM"   property="serverFileNm"   jdbcType="VARCHAR" />
+    <result column="LINK_DOC_NO" property="linkDocNo"  jdbcType="VARCHAR"/>
+    <result column="SORT_NO"     property="sortNo"     jdbcType="INTEGER"/>
+    <result column="USE_YN"    property="useYn"    jdbcType="VARCHAR"/>
+    <result column="WRITER" property="writer"  jdbcType="VARCHAR"/>
+    <result column="REG_DTTM" property="regDttm"  jdbcType="VARCHAR"/>
+  </resultMap>
+  <select id="selectBoardList" resultMap="boardResult" parameterType="me.jsk.app.board.domain.BoardVO">
+    SELECT A.DOC_NO, A.TITLE, A.CONTENT, A.WRITER, A.REG_DTTM, A.VIEW, A.REPLY
+      FROM (
+            SELECT A.*, (@ROWNUM := @ROWNUM + 1) AS ROWNUM
+              FROM (
+                    SELECT A.DOC_NO, A.TITLE, A.CONTENT, A.WRITER, A.REG_DTTM, A.VIEW, (SELECT COUNT(*) FROM TEST.TB_REPLY X WHERE X.DOC_NO = A.DOC_NO) AS REPLY
+                      FROM TEST.TB_BOARD A
+                    <where>
+                      <if test="schType != null and schType != '' and schVal != null and schVal != ''">
+                        <choose>
+                          <when test="schType == 'docNo'">
+                            AND A.DOC_NO = #{schVal}
+                          </when>
+                          <when test="schType == 'title'">
+                            AND A.TITLE LIKE CONCAT('%', #{schVal}, '%')
+                          </when>
+                          <when test="schType == 'writer'">
+                            AND A.WRITER LIKE CONCAT('%', #{schVal}, '%')
+                          </when>
+                        </choose>
+                      </if>
+                    </where>
+                    ORDER BY
+                    <foreach collection="sort" item="sort" index="index" separator=",">
+                      ${sort}
+                    </foreach>
+                    ) A, (SELECT @ROWNUM := 0) TEMP
+            ) A
+     WHERE ROWNUM BETWEEN #{startNo} AND #{endNo}
+  </select>
+                  
+  <select id="selectBoardListCount" resultType="int" parameterType="me.jsk.app.board.domain.BoardVO">
+    SELECT COUNT(*) AS TOTAL_CNT
+      FROM TEST.TB_BOARD
+    <where>
+      <if test="schType != null and schType != '' and schVal != null and schVal != ''">
+        <choose>
+          <when test="schType == 'docNo'">
+            AND DOC_NO = #{schVal}
+          </when>
+          <when test="schType == 'title'">
+            AND TITLE LIKE CONCAT('%', #{schVal}, '%')
+          </when>
+          <when test="schType == 'writer'">
+            AND WRITER LIKE CONCAT('%', #{schVal}, '%')
+          </when>
+        </choose>
+      </if>
+    </where>
+  </select>
+                  
+  <select id="selectBoardDetail" resultMap="boardResult" parameterType="me.jsk.app.board.domain.BoardVO">
+    SELECT A.DOC_NO, A.TITLE, A.CONTENT, A.WRITER, A.REG_DTTM, A.VIEW, (SELECT COUNT(*) FROM TEST.TB_REPLY X WHERE X.DOC_NO = A.DOC_NO) AS REPLY
+      FROM TEST.TB_BOARD A
+     WHERE A.DOC_NO = #{docNo}
+  </select>
+  
+  <select id="selectFileList" resultMap="fileResult" parameterType="me.jsk.app.board.domain.BoardVO">
+    SELECT FILE_NO, FILE_PATH, REAL_FILE_NM, SERVER_FILE_NM, LINK_DOC_NO, SORT_NO, USE_YN, WRITER, REG_DTTM
+      FROM TB_FILE
+     WHERE LINK_DOC_NO = #{docNo}
+     ORDER BY SORT_NO
+  </select>
+  
+  <select id="selectNextDocNo" resultType="int" parameterType="me.jsk.app.board.domain.BoardVO">
+  	 SELECT IFNULL(MAX(DOC_NO), 0) + 1 AS DOC_NO FROM TEST.TB_BOARD
+  </select>
+  
+  <select id="selectNextFileNo" resultType="int">
+  	 SELECT CAST(REPLACE(NVL(Max(FILE_NO), "FILE_0000000000"), 'FILE_', '') AS INTEGER)  FROM TB_FILE 
+  </select>
+
+  <insert id="insertBoard" parameterType="me.jsk.app.board.domain.BoardVO">
+    <selectKey resultType="int" keyProperty="docNo" order="BEFORE">
+      SELECT IFNULL(MAX(DOC_NO), 0) + 1 AS DOC_NO FROM TEST.TB_BOARD
+    </selectKey>
+    INSERT INTO TEST.TB_BOARD (DOC_NO, TITLE, CONTENT, WRITER)
+    VALUES (#{docNo}, #{title}, #{content}, #{writer})
+  </insert>
+  
+  <insert id="insertFileInfo" parameterType="me.jsk.app.board.domain.FileVO">
+  	INSERT INTO TB_FILE (FILE_NO, FILE_PATH, REAL_FILE_NM, SERVER_FILE_NM, LINK_DOC_NO, SORT_NO, USE_YN, WRITER)
+  	VALUES (#{fileNo}, #{filePath}, #{realFileNm}, #{serverFileNm}, #{linkDocNo}, #{sortNo}, #{useYn}, #{writer})
+  </insert>
+  
+  <update id="updateBoard" parameterType="me.jsk.app.board.domain.BoardVO">
+    UPDATE TEST.TB_BOARD
+       SET TITLE = #{title}
+         , CONTENT = #{content}
+     WHERE DOC_NO = #{docNo}
+  </update>
+
+  <delete id="deleteBoard" parameterType="me.jsk.app.board.domain.BoardVO">
+    DELETE FROM TEST.TB_BOARD
+     WHERE DOC_NO = #{docNo}
+  </delete>
+
+  <update id="increaseViewCount" parameterType="me.jsk.app.board.domain.BoardVO">
+    UPDATE TEST.TB_BOARD
+       SET VIEW = VIEW + 1
+     WHERE DOC_NO = #{docNo}
+  </update>
+
+  <resultMap id="replyResult" type="me.jsk.app.board.domain.ReplyVO">
+    <result column="REPLY_NO" property="replyNo" jdbcType="INTEGER"/>
+    <result column="DOC_NO"   property="docNo"   jdbcType="INTEGER"/>
+    <result column="WRITER"   property="writer"  jdbcType="VARCHAR"/>
+    <result column="CONTENT"  property="content" jdbcType="VARCHAR"/>
+    <result column="REG_DTTM" property="regDttm" jdbcType="VARCHAR"/>
+  </resultMap>
+  <select id="selectReplyList" resultMap="replyResult" parameterType="me.jsk.app.board.domain.ReplyVO">
+    SELECT REPLY_NO, DOC_NO, WRITER, CONTENT, REG_DTTM
+      FROM TEST.TB_REPLY
+     WHERE DOC_NO = #{docNo}
+  </select>
+
+  <insert id="insertReply" parameterType="me.jsk.app.board.domain.ReplyVO">
+    <selectKey resultType="int" keyProperty="replyNo" order="BEFORE">
+      SELECT IFNULL(MAX(REPLY_NO), 0) + 1 AS REPLY_NO FROM TEST.TB_REPLY WHERE DOC_NO = #{docNo}
+    </selectKey>
+    INSERT INTO TEST.TB_REPLY (REPLY_NO, DOC_NO, WRITER, CONTENT)
+    VALUES (#{replyNo}, #{docNo}, #{writer}, #{content})
+  </insert>
+
+  <update id="updateReply" parameterType="me.jsk.app.board.domain.ReplyVO">
+    UPDATE TEST.TB_REPLY
+       SET CONTENT = #{content}
+     WHERE REPLY_NO = #{replyNo}
+       AND DOC_NO = #{docNo}
+  </update>
+
+  <delete id="deleteReply" parameterType="me.jsk.app.board.domain.ReplyVO">
+    DELETE FROM TEST.TB_REPLY
+     WHERE DOC_NO = #{docNo}
+     <if test="replyNo > 0">
+       AND REPLY_NO = #{replyNo}
+     </if>
+  </delete>
+
+</mapper>
