@@ -3852,7 +3852,7 @@
 					</template>
 				</v-card-title>
 				<v-card-title>
-					142. v-treeview
+					142. v-treeview (깃 반영)
 				</v-card-title>
 				<v-card-title>
 					<template>
