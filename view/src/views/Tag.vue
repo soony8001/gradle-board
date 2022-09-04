@@ -1532,7 +1532,7 @@
 					51. v-expansion-panels (48번참조)
 				</v-card-title>
 				<v-card-title>
-					52. v-fab-transition (Board 탭에서 확인)
+					52. v-fab-transition (Board탭에서 확인)
 				</v-card-title>
 				<v-card-title>
 					53. v-fade-transition
@@ -1540,7 +1540,7 @@
 				<v-card-title>
 					<template>
 						<div class="text-center">
-							<v-menu transition="fade-transition">
+							<v-menu transition="fade-trans`ition">
 								<template v-slot:activator="{ on, attrs }">
 									<v-btn dark color="primary" v-bind="attrs" v-on="on">
 										Fade Transition
