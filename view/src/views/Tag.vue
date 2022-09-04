@@ -1532,7 +1532,7 @@
 					51. v-expansion-panels (48번참조)
 				</v-card-title>
 				<v-card-title>
-					52. v-fab-transition (Board탭에서 확인)
+					52. v-fab-transition ( Board탭에서 확인)
 				</v-card-title>
 				<v-card-title>
 					53. v-fade-transition
