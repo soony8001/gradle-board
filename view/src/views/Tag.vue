@@ -1532,25 +1532,7 @@
 					51. v-expansion-panels (48번참조)
 				</v-card-title>
 				<v-card-title>
-					52. v-fab-transition (패스)
-				</v-card-title>
-				<v-card-title>
-					<template>
-						<div class="text-center">
-							<v-menu transition="fab-transition">
-								<template v-slot:activator="{ on, attrs }">
-									<v-btn dark color="primary" v-bind="attrs" v-on="on">
-										Fab Transition
-									</v-btn>
-								</template>
-								<v-list>
-									<v-list-item v-for="n in 5" :key="n">
-										<v-list-item-title v-text="'Item ' + n"></v-list-item-title>
-									</v-list-item>
-								</v-list>
-							</v-menu>
-						</div>
-					</template>
+					52. v-fab-transition (Board 탭에서 확인)
 				</v-card-title>
 				<v-card-title>
 					53. v-fade-transition
