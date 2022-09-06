@@ -96,6 +96,11 @@ export default {
 			},
 			footerOptions: {
 				'items-per-page-options': [5, 10, 25, 50, 100],
+				showFirstLastPage: true,
+				firstIcon: 'mdi-arrow-collapse-left',
+				lastIcon: 'mdi-arrow-collapse-right',
+				prevIcon: 'mdi-minus',
+				nextIcon: 'mdi-plus',
 			},
 			totalCount: 0,
 			loading: false,
